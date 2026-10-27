@@ -1,33 +1,39 @@
-name: Android CI
+
+
+name: Build Android APK
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: set up JDK 11
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: gradle
+          distribution: temurin
+          java-version: '17'
 
-      - name: setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.2.1'
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Create Gradle wrapper
+        run: gradle wrapper --gradle-version 8.2.1
 
-      - name: Upload APK artifact
+      - name: Build APK
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: app/build/outputs/apk/debug/
+          name: angel-options-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
